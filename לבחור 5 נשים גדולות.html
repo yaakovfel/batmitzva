@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בחירת קלפי נשים משפיעות</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        /* רשימת הנבחרים */
+        .selected-list {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            min-height: 120px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #eef2f3;
+            border: 2px dashed #b2bec3;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        /* כרטיסים */
+        .card {
+            background: #ffffff;
+            border: 2px solid #3498db;
+            border-radius: 6px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-weight: bold;
+            min-width: 100px;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        /* קלפים ברשימה הכללית */
+        .pool-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .pool-list .card {
+            background: #fff;
+            border-color: #bdc3c7;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        /* תג המספר בקלפי המאגר - מעודכן לירוק בהיר */
+        .card-number {
+            font-size: 11px;
+            font-weight: bold;
+            color: #1e7e34; /* ירוק כהה לטקסט */
+            background-color: #d4edda; /* רקע ירוק בהיר */
+            border: 1px solid #c3e6cb; /* גבול ירוק עדין */
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 14px;
+            text-align: center;
+        }
+        .pool-list .card.disabled {
+            background: #e0e0e0;
+            border-color: #b2bec3;
+            color: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+        /* קלפים שנבחרו */
+        .selected-list .card {
+            position: relative;
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+            padding-right: 25px;
+        }
+        /* כפתורי שליטה בקלף הנבחר */
+        .card-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            gap: 4px;
+            width: 100%;
+        }
+        .btn-mini {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 2px 6px;
+        }
+        .btn-mini:hover {
+            background: rgba(255,255,255,0.4);
+        }
+        .btn-delete {
+            background: #e74c3c;
+            border-color: #c0392b;
+        }
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+        .counter {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- אזור הקלפים הנבחרים -->
+    <div class="section">
+        <h2>הקלפים הנבחרים שלך (עד 5 קלפים)</h2>
+        <div class="counter" id="counter">נבחרו 0 מתוך 5</div>
+        <div class="selected-list" id="selectedContainer">
+            <!-- קלפים נבחרים יופיעו כאן דינמית -->
+        </div>
+    </div>
+
+    <!-- אזור מאגר הקלפים הכללי -->
+    <div class="section">
+        <h2>מאגר הקלפים הכללי</h2>
+        <p style="text-align: center; margin: 0 0 15px 0; color: #666;">לחץ על קלף כדי להוסיף אותו לרשימה</p>
+        <div class="pool-list" id="poolContainer">
+            <!-- מאגר הקלפים ייווצר כאן דינמית -->
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // רשימת השמות שסיפקת
+    const namesPool = [
+        "רחל", "רבקה", "שרה", "מרים", "לאה", "יעל", "חנה", "רות", "בתיה", "נעמי",
+        "מיכל", "צפורה", "דבורה", "יוכבד", "אסתר", "אביגיל", "נעה\\תרצה\\בנות צלפחד",
+        "בת שבע", "יהודית", "רחל המשוררת", "גולדה מאיר", "שרה אהרונסון", "מניה שוחט",
+        "הנרייטה סזולד", "שרה לוי-תנאי", "חנה סנש"
+    ];
+
+    // מערך שישמור את הקלפים שנבחרו (עד 5) לפי סדר הבחירה
+    let selectedCards = [];
+
+    const poolContainer = document.getElementById('poolContainer');
+    const selectedContainer = document.getElementById('selectedContainer');
+    const counterDisplay = document.getElementById('counter');
+
+    // אתחול מאגר הקלפים הכללי עם מספור רץ
+    function initPool() {
+        poolContainer.innerHTML = '';
+        namesPool.forEach((name, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // תג המספר בעיצוב החדש
+            const numBadge = document.createElement('span');
+            numBadge.className = 'card-number';
+            numBadge.innerText = index + 1;
+            
+            // שם הדמות
+            const nameLabel = document.createElement('span');
+            nameLabel.innerText = name;
+            
+            // חיבור האלמנטים לקלף
+            card.appendChild(numBadge);
+            card.appendChild(nameLabel);
+            
+            card.setAttribute('data-name', name);
+            card.onclick = () => addCard(name);
+            poolContainer.appendChild(card);
+        });
+    }
+
+    // עדכון התצוגה של רשימת הנבחרים והמאגר
+    function updateUI() {
+        // 1. עדכון מונה
+        counterDisplay.innerText = `נבחרו ${selectedCards.length} מתוך 5`;
+
+        // 2. רינון רשימת הנבחרים
+        selectedContainer.innerHTML = '';
+        if (selectedCards.length === 0) {
+            selectedContainer.innerHTML = '<span style="color: #7f8c8d;">הרשימה ריקה. בחר קלפים מתוך המאגר למטה.</span>';
+        } else {
+            selectedCards.forEach((name, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                // שם הקלף הנבחר עם המיקום שלו בדירוג
+                const textNode = document.createElement('div');
+                textNode.innerText = `${index + 1}. ${name}`;
+                card.appendChild(textNode);
+
+                // כפתורי שליטה (חצים ומחיקה)
+                const controls = document.createElement('div');
+                controls.className = 'card-controls';
+
+                // חץ ימינה (להעביר קדימה בסדר)
+                if (index > 0) {
+                    const moveUpBtn = document.createElement('button');
+                    moveUpBtn.className = 'btn-mini';
+                    moveUpBtn.innerText = '→';
+                    moveUpBtn.onclick = (e) => { e.stopPropagation(); moveCard(index, index - 1); };
+                    controls.appendChild(moveUpBtn);
+                }
+
+                // כפתור מחיקה
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-mini btn-delete';
+                deleteBtn.innerText = 'מחק';
+                deleteBtn.onclick = (e) => { e.stopPropagation(); removeCard(name); };
+                controls.appendChild(deleteBtn);
+
+                // חץ שמאלה (להעביר אחורה בסדר)
+                if (index < selectedCards.length - 1) {
+                    const moveDownBtn = document.createElement('button');
+                    moveDownBtn.className = 'btn-mini';
+                    moveDownBtn.innerText = '←';
+                    moveDownBtn.onclick = (e) => { e.stopPropagation(); moveCard(index, index + 1); };
+                    controls.appendChild(moveDownBtn);
+                }
+
+                card.appendChild(controls);
+                selectedContainer.appendChild(card);
+            });
+        }
+
+        // 3. עדכון מצב הקלפים במאגר הכללי (נעילה/שחרור)
+        const poolCards = poolContainer.querySelectorAll('.card');
+        poolCards.forEach(card => {
+            const name = card.getAttribute('data-name');
+            if (selectedCards.includes(name)) {
+                card.classList.add('disabled');
+            } else {
+                card.classList.remove('disabled');
+            }
+        });
+    }
+
+    // הוספת קלף לרשימה
+    function addCard(name) {
+        if (selectedCards.includes(name)) return; // כבר נבחר
+        if (selectedCards.length >= 5) {
+            alert('ניתן לבחור עד 5 קלפים בלבד! מחק קלף כדי להוסיף אחר.');
+            return;
+        }
+        selectedCards.push(name);
+        updateUI();
+    }
+
+    // מחיקת קלף מהרשימה
+    function removeCard(name) {
+        selectedCards = selectedCards.filter(item => item !== name);
+        updateUI();
+    }
+
+    // שינוי מיקום/סדר הקלפים
+    function moveCard(fromIndex, toIndex) {
+        const element = selectedCards.splice(fromIndex, 1);
+        selectedCards.splice(toIndex, 0, element);
+        updateUI();
+    }
+
+    // הפעלה ראשונית
+    initPool();
+    updateUI();
+</script>
+
+</body>
+</html>
